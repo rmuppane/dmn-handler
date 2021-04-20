@@ -2,7 +2,7 @@
 
 DMN Models are capable of producing results in a form of complex objects (i.e. Customer).
 Further, if DMN is invoked from within the BPMN process in a form of Rule Task, every DMN Results which is mapped back to the calling process is returned
-in a form of `LinkedHashMap`. To transform this `LinkedHashMap` into a custom object one would have process process it somehow - i.e. via Script Task or via another Work Item.
+in a form of `LinkedHashMap`. To transform this `LinkedHashMap` into a custom object one would have post process it somehow - i.e. via Script Task or via another Work Item.
 
 The default configuration of the output in Rule Task looks like this:
 ![defaultDMN](default-dmn-task.png)
