@@ -1,0 +1,1 @@
+curl -u anton:password1! -X POST "http://localhost:8080/kie-server/services/rest/server/containers/DMNExperiment/processes/DMNExperiment.DMNProcess/instances" -H "accept: application/xml" -H "content-type: application/json" -d " { \"Application\": { \"term\":24, \"amount\": 25000 }, \"Customer\": {\"fullName\": \"John Doe\", \"incomeAnnual\": 40000, \"age\": 23}  }"
