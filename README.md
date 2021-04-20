@@ -7,7 +7,7 @@ in a form of `LinkedHashMap`. To transform this `LinkedHashMap` into a custom ob
 The default configuration of the output in Rule Task looks like this:
 ![defaultDMN](default-dmn-task.png)
 
-In our example, the output is `Pre-Approval`, which is a complex object with two attributes:
+In our example, the output from our DMN Model is `Pre-Approval`, which is a complex object with two attributes:
 
  - approved (Boolean)
  - reasons (List of strings)
