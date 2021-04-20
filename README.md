@@ -22,7 +22,7 @@ The core idea is to transform Map to Json and then Json to Custom Object.
 Disadvantage is the apparent inefficiency of such solution, advantage is the simplicity and feasibility without any major disruptions to any of the existing APIs.
 
 Further inspiration was found in the [RESTWorkItemHandler](https://github.com/kiegroup/jbpm/blob/master/jbpm-workitems/jbpm-workitems-rest/src/main/java/org/jbpm/process/workitem/rest/RESTWorkItemHandler.java).
-However there is one big difference between DMN Rule Task Handler and the RESTWorkItemHandler. DMN Rule Task can produce multiple different outputs - this can be list of completely different data types, ranging from primtiives such as booleans to very nested complex structures. So one of the requirement is to allow user ability to pick and chose which DMN Results he wants to marshal to his desired custom Object and which he wants to keep intact.
+However there is one big difference between DMN Rule Task Handler and the RESTWorkItemHandler. DMN Rule Task can produce multiple different outputs - this can be list of completely different data types, ranging from primitives such as booleans to very nested complex structures. So one of the requirement is to allow user ability to pick and chose which DMN Results he wants to marshal to his desired custom Object and which he wants to keep intact.
 
 The final solution involves custom work item handler `MyCustomDMNHandler` which introduces one extra Input Attribute `ResultTypeMapping`
 
