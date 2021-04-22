@@ -64,6 +64,26 @@ public class MyCustomDMNHandler implements WorkItemHandler {
     public void executeWorkItem(WorkItem workItem, WorkItemManager manager) {
         Map<String, Object> parameters = new HashMap(workItem.getParameters());
         String language = (String) parameters.remove("Language");
+
+        HashMap results = new HashMap();
+        this.handleDMN(parameters, results);
+        manager.completeWorkItem(workItem.getId(), results);
+
+    }
+
+    private Object transformResult(Object toMarshal, String className) throws ClassNotFoundException, IOException {
+        Class<?> clazz = Class.forName(className, true, classLoader);
+        String jsonString = mapper.writeValueAsString(toMarshal);
+        return mapper.readValue(jsonString,clazz);
+    }
+
+    public void abortWorkItem(WorkItem workItem, WorkItemManager manager) {
+    }
+
+    protected void handleDMN(Map<String, Object> parameters, Map<String, Object> results) {
+        String namespace = (String) parameters.remove("Namespace");
+        String model = (String) parameters.remove("Model");
+        String decision = (String) parameters.remove("Decision");
         String resultTypeMapping = (String) parameters.remove("ResultTypeMapping");
 
         Map<String, String> resultTypeMappingPairs = new HashMap<String, String>();
@@ -75,55 +95,6 @@ public class MyCustomDMNHandler implements WorkItemHandler {
                 resultTypeMappingPairs.put(pair[0], pair[1]);
             }
         }
-
-        HashMap results = new HashMap();
-
-
-        this.handleDMN(parameters, results);
-
-        logger.info("Custom DMN Handler invoked - results to follow");
-
-        results.forEach((k, v) -> {
-
-            logger.info("DMN Key {}, DMN Value {}", k, v);
-        });
-
-        results.keySet().forEach(k -> {
-
-            if (resultTypeMappingPairs.containsKey(k)) {
-                try {
-                    logger.info("About to marshal {} to {}", k, resultTypeMappingPairs.get(k));
-                    transformResult(results, (String) k, resultTypeMappingPairs);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-
-        manager.completeWorkItem(workItem.getId(), results);
-
-
-    }
-
-    private void transformResult(HashMap results, String k, Map<String, String> resultTypeMappingPairs) throws ClassNotFoundException, IOException {
-
-        Object marshalMe = results.get(k);
-        Class<?> clazz = Class.forName(resultTypeMappingPairs.get(k), true, classLoader);
-        String jsonString = mapper.writeValueAsString(marshalMe);
-        Object marshalledObject = mapper.readValue(jsonString,clazz);
-        results.put(k,marshalledObject);
-    }
-
-    public void abortWorkItem(WorkItem workItem, WorkItemManager manager) {
-    }
-
-    protected void handleDMN(Map<String, Object> parameters, Map<String, Object> results) {
-        String namespace = (String) parameters.remove("Namespace");
-        String model = (String) parameters.remove("Model");
-        String decision = (String) parameters.remove("Decision");
         DMNRuntime runtime = (DMNRuntime) this.kieContainer.newKieSession().getKieRuntime(DMNRuntime.class);
         DMNModel dmnModel = runtime.getModel(namespace, model);
         if (dmnModel == null) {
@@ -150,7 +121,26 @@ public class MyCustomDMNHandler implements WorkItemHandler {
                 }).collect(Collectors.joining(", "));
                 throw new RuntimeException("DMN result errors:: " + errors);
             } else {
-                results.putAll(dmnResult.getContext().getAll());
+
+
+                dmnResult.getContext().getAll().forEach((k,v) -> {
+                    logger.info("[BEFORE TRANSFORMING RESULTS] DMN Result Key {}, DMN Result Value {}", k, v);
+
+                    if (resultTypeMappingPairs.containsKey(k)) {
+                        try {
+                            results.put(k,transformResult(v,resultTypeMappingPairs.get(k)));
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+                        results.put(k,v);
+                    }
+
+                });
+
             }
         }
     }
