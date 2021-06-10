@@ -73,8 +73,25 @@ public class MyCustomDMNHandler implements WorkItemHandler {
 
     private Object transformResult(Object toMarshal, String className) throws ClassNotFoundException, IOException {
         Class<?> clazz = Class.forName(className, true, classLoader);
+        System.out.println("##########################");
+        logger.info("Clazz Type is {}",clazz.getCanonicalName());
+        System.out.println("Clazz Type is ["+clazz.getCanonicalName()+"]");
+
         String jsonString = mapper.writeValueAsString(toMarshal);
+
+        if (isClassCollection(clazz)){
+            Class<?> collGenericclazz = Class.forName("com.redhat.Document", true, classLoader);
+            System.out.println("collGenericclazz Type is ["+collGenericclazz.getCanonicalName()+"]");
+            System.out.println("##########################");
+            return mapper.readValue(jsonString,mapper.getTypeFactory().constructCollectionType(List.class, collGenericclazz));
+        }
+
+        
         return mapper.readValue(jsonString,clazz);
+    }
+
+    public static boolean isClassCollection(Class c) {
+        return Collection.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c);
     }
 
     public void abortWorkItem(WorkItem workItem, WorkItemManager manager) {
@@ -95,6 +112,8 @@ public class MyCustomDMNHandler implements WorkItemHandler {
                 resultTypeMappingPairs.put(pair[0], pair[1]);
             }
         }
+        logger.info("Result Type Mapping set to {}",resultTypeMappingPairs);
+        
         DMNRuntime runtime = (DMNRuntime) this.kieContainer.newKieSession().getKieRuntime(DMNRuntime.class);
         DMNModel dmnModel = runtime.getModel(namespace, model);
         if (dmnModel == null) {
